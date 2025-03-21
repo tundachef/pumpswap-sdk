@@ -8,15 +8,6 @@
 
 # Usage
 
-### Buy token through cli
-`
-ts-node src/buy-cli.ts --token <ADDRESS_TOKEN> --sol <NUMBER_OF_SOL>
-`
-
-### Sell token through cli
-`
-ts-node src/sell-cli.ts --token <ADDRESS_TOKEN> --percentage <SELL_PERCENTAGE>
-`
 ### buy/sell on PumpSwap
 ```typescript
 import {wallet_1} from "./constants";
