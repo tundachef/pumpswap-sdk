@@ -34,7 +34,11 @@ async function main() {
 
 ### Fetch the price
 ```typescript
-
+import {getPrice} from './pool';
+async function main() {
+    const mint = new PublicKey("your-pumpfun-token-address");   
+    console.log(await getPrice(mint));
+}
 ```
 
 ### Fetch the pool
