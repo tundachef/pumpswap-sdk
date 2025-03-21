@@ -2,7 +2,9 @@
 # To Get Start
 1. `npm i`
 
-2. Paste your private key and Helius RPC key.
+2. Paste your private key and Helius RPC key in .env.copy
+
+3. rename it to .env
 
 # Usage
 
