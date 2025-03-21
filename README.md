@@ -12,7 +12,6 @@ ts-node src/sell-cli.ts --token <ADDRESS_TOKEN> --percentage <SELL_PERCENTAGE>
 `
 ### buy/sell token on PumpSwap
 ```typescript
-import {buy, sell} from "./pum";
 import {wallet_1} from "./constants";
 import {PumpSwapSDK} from './pumpswap';
 async function main() {
