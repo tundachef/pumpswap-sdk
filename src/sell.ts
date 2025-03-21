@@ -10,7 +10,7 @@ async function sell_example(){
 
 
   const pumpswap_sdk = new PumpSwapSDK();
-  pumpswap_sdk.sell_percentage(new PublicKey("7REaNnhbnPp6gvVzfQJc2TAEKHr52GG7Y75zN2czpump"), wallet_1.publicKey, 1); // 1 = 100%, sell all
+  pumpswap_sdk.sell_percentage(new PublicKey(""), wallet_1.publicKey, 1); // 1 = 100%, sell all
 
 }
 sell_example();
