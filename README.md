@@ -1,4 +1,9 @@
 # PumpSwap SDK
+# To Get Start
+1. `npm i`
+
+2. Paste your private key and Helius RPC key.
+
 # Usage
 
 ### Buy token through cli
