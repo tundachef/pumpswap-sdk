@@ -132,8 +132,8 @@ const getPoolsWithPrices = async (mintAddress: PublicKey) => {
         getPoolsWithBaseMint(mintAddress),
         getPoolsWithQuoteMint(mintAddress)
     ])
-    const poolsWithBaseMinQuoteWSOL = await getPoolsWithBaseMintQuoteWSOL(mintAddress)
-    const pools = [...poolsWithBaseMinQuoteWSOL, ...poolsWithBaseMint, ...poolsWithQuoteMint];
+    //const poolsWithBaseMinQuoteWSOL = await getPoolsWithBaseMintQuoteWSOL(mintAddress)
+    const pools = [...poolsWithBaseMint, ...poolsWithQuoteMint];
 
     const results = await Promise.all(pools.map(getPriceAndLiquidity));
 
@@ -164,11 +164,15 @@ export const getPumpSwapPool = async (mint:PublicKey) => {
     return pools[0].address;
 }
 
+export const getPrice = async (mint:PublicKey) => {
+    const pools = await getPoolsWithPrices(mint)
+    return pools[0].price;
+}
 async function main(){
     const mint = new PublicKey("");   
-    console.log(await getBuyTokenAmount(BigInt(0.1*LAMPORTS_PER_SOL), mint));
-    console.log(await getPumpSwapPool(mint))
+    // console.log(await getBuyTokenAmount(BigInt(0.1*LAMPORTS_PER_SOL), mint));
+    // console.log(await getPumpSwapPool(mint))
+    console.log(await getPrice(mint));
 
 }
-
 // main();
