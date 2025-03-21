@@ -43,7 +43,11 @@ async function main() {
 
 ### Fetch the pool
 ```typescript
-
+import {getPumpSwapPool} from './pool';
+async function main() {
+    const mint = new PublicKey("your-pumpfun-token-address");   
+    console.log(await getPumpSwapPool(mint));
+}
 ```
 
 
