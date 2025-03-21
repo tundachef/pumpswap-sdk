@@ -1,1 +1,1 @@
-# PumpSwap SDK
+# solana-pumpswap-sdk
