@@ -10,7 +10,7 @@ ts-node src/buy-cli.ts --token <ADDRESS_TOKEN> --sol <NUMBER_OF_SOL>
 `
 ts-node src/sell-cli.ts --token <ADDRESS_TOKEN> --percentage <SELL_PERCENTAGE>
 `
-### buy/sell token on PumpSwap
+### buy/sell on PumpSwap
 ```typescript
 import {wallet_1} from "./constants";
 import {PumpSwapSDK} from './pumpswap';
@@ -25,12 +25,12 @@ async function main() {
 }
 ```
 
-### Fetch the price from PumpSwap pool
+### Fetch the price
 ```typescript
 
 ```
 
-### Fetch the pool address for the target token
+### Fetch the pool
 ```typescript
 
 ```
