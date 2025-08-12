@@ -30,6 +30,8 @@ import {getBuyTokenAmount,
   getPoolsWithPrices,
   getCoinCreatorVaultAuthorityPda,
   getCoinCreatorVaultAtaPda,
+  userVolumeAccumulatorPda,
+  globalVolumeAccumulatorPda,
 } from "./pool";
 import { getSPLBalance } from "./utils";
 
@@ -213,6 +215,10 @@ export class PumpSwapSDK {
     const coin_creator_vault_ata_data = getCoinCreatorVaultAtaPda(coin_creator_vault_authority, TOKEN_PROGRAM_ID, NATIVE_MINT);
     console.log("coin_creator_vault_ata: ", coin_creator_vault_ata_data[0].toBase58());
     const coin_creator_vault_ata = coin_creator_vault_ata_data[0];
+    const global_volume_accumulator = globalVolumeAccumulatorPda(PUMP_AMM_PROGRAM_ID);
+    const user_volume_accumulator = userVolumeAccumulatorPda(user, PUMP_AMM_PROGRAM_ID);
+    console.log("global_volume_accumulator: ", global_volume_accumulator[0].toBase58());
+    console.log("user_volume_accumulator: ", user_volume_accumulator[0].toBase58());
     // Define the accounts for the instruction
     const accounts = [
       { pubkey: poolId, isSigner: false, isWritable: false }, // pool_id (readonly)
@@ -234,6 +240,8 @@ export class PumpSwapSDK {
       { pubkey: PUMP_AMM_PROGRAM_ID, isSigner: false, isWritable: false }, // PUMP_AMM_PROGRAM_ID (readonly)
       { pubkey: coin_creator_vault_ata, isSigner: false, isWritable: true }, // coin_creator_vault_ata (writable)
       { pubkey: coin_creator_vault_authority, isSigner: false, isWritable: false }, // coin_creator_vault_authority (readonly)
+      { pubkey: global_volume_accumulator, isSigner: false, isWritable: true }, // global_volume_accumulator (writable)
+      { pubkey: user_volume_accumulator, isSigner: false, isWritable: true }, // user_volume_accumulator (writable)
     ];
   
     // Pack the instruction data: discriminator (8 bytes) + base_amount_in (8 bytes) + min_quote_amount_out (8 bytes)
@@ -270,6 +278,10 @@ async createSellInstruction(
   const coin_creator_vault_ata_data = getCoinCreatorVaultAtaPda(coin_creator_vault_authority, TOKEN_PROGRAM_ID, NATIVE_MINT);
   console.log("coin_creator_vault_ata: ", coin_creator_vault_ata_data[0].toBase58());
   const coin_creator_vault_ata = coin_creator_vault_ata_data[0];
+  const global_volume_accumulator = globalVolumeAccumulatorPda(PUMP_AMM_PROGRAM_ID);
+  const user_volume_accumulator = userVolumeAccumulatorPda(user, PUMP_AMM_PROGRAM_ID);
+  console.log("global_volume_accumulator: ", global_volume_accumulator[0].toBase58());
+  console.log("user_volume_accumulator: ", user_volume_accumulator[0].toBase58());
   // Define the accounts for the instruction
   const accounts = [
     { pubkey: poolId, isSigner: false, isWritable: false }, // pool_id (readonly)
@@ -291,6 +303,8 @@ async createSellInstruction(
     { pubkey: PUMP_AMM_PROGRAM_ID, isSigner: false, isWritable: false }, // PUMP_AMM_PROGRAM_ID (readonly)
     { pubkey: coin_creator_vault_ata, isSigner: false, isWritable: true }, // coin_creator_vault_ata (writable)
     { pubkey: coin_creator_vault_authority, isSigner: false, isWritable: false }, // coin_creator_vault_authority (readonly)
+    { pubkey: global_volume_accumulator, isSigner: false, isWritable: true }, // global_volume_accumulator (writable)
+    { pubkey: user_volume_accumulator, isSigner: false, isWritable: true }, // user_volume_accumulator (writable)
   ];
 
   // Pack the instruction data: discriminator (8 bytes) + base_amount_in (8 bytes) + min_quote_amount_out (8 bytes)

@@ -353,6 +353,24 @@ export function getCoinCreatorVaultAtaPda(
     programId
   );
 }
+export function globalVolumeAccumulatorPda(
+  programId: PublicKey = PUMP_AMM_PROGRAM_ID,
+): [PublicKey, number] {
+  return PublicKey.findProgramAddressSync(
+    [Buffer.from("global_volume_accumulator")],
+    programId,
+  );
+}
+
+export function userVolumeAccumulatorPda(
+  user: PublicKey,
+  programId: PublicKey = PUMP_AMM_PROGRAM_ID,
+): [PublicKey, number] {
+  return PublicKey.findProgramAddressSync(
+    [Buffer.from("user_volume_accumulator"), user.toBuffer()],
+    programId,
+  );
+}
 async function main(){
     const mint = new PublicKey("MINT_ADDRESS");   
     const pool_detail = await getPoolsWithPrices(mint);
