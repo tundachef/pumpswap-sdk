@@ -27,14 +27,15 @@ import { sendBundle } from './jito';
 import {
   getBuyTokenAmount,
   calculateWithSlippageBuy,
-  getPumpSwapPool,
-  getPoolsWithPrices,
+  // getPumpSwapPool,
+  // getPoolsWithPrices,
   getCoinCreatorVaultAuthorityPda,
   getCoinCreatorVaultAtaPda,
   userVolumeAccumulatorPda,
   globalVolumeAccumulatorPda,
 } from "./pool";
 import { getSPLBalance } from "./utils";
+import { PumpAmmSdk } from "@pump-fun/pump-swap-sdk";
 
 // Define static public keys
 const PUMP_AMM_PROGRAM_ID: PublicKey = new PublicKey('pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA');
@@ -58,21 +59,22 @@ export class PumpSwapSDK {
     // this.program = new Program<PumpSwap>(IDL as PumpSwap, provider);
     // this.connection = this.program.provider.connection;
   }
-  public async buy(mint: PublicKey, user: PublicKey, solToBuy: number) {
-    const slippage = 0.3; // Default: 30%
-    const bought_token_amount = await getBuyTokenAmount(BigInt(solToBuy * LAMPORTS_PER_SOL), mint);
+  public async buy(mint: PublicKey, poolId: PublicKey, solToBuy: number,
+    user: PublicKey = wallet_1.publicKey) {
+    const slippage = 0.5; // Default: 50%
+    const bought_token_amount = await getBuyTokenAmount(BigInt(solToBuy * LAMPORTS_PER_SOL), poolId);
     // logger.info(
     //   {
     //     status:`finding pumpswap pool for ${mint}`
     //   }
     // )
-    const pool = await getPumpSwapPool(mint)
-    const pumpswap_buy_tx = await this.createBuyInstruction(pool, user, mint, bought_token_amount, BigInt(Math.floor(solToBuy * (1 + slippage) * LAMPORTS_PER_SOL)));
+    // const pool = await getPumpSwapPool(mint)
+    const pumpswap_buy_tx = await this.createBuyInstruction(poolId, user, mint, bought_token_amount.pool.coinCreator, bought_token_amount.amount_to_be_purchased, BigInt(Math.floor(solToBuy * (1 + slippage) * LAMPORTS_PER_SOL)));
     const ata = getAssociatedTokenAddressSync(mint, user);
     const ix_list: any[] = [
       ...[
         ComputeBudgetProgram.setComputeUnitLimit({
-          units: 300000,
+          units: 700000,
         }),
         ComputeBudgetProgram.setComputeUnitPrice({
           microLamports: 696969
@@ -105,15 +107,16 @@ export class PumpSwapSDK {
     console.log(`Successful buy: ${transactionSignature}`);
   }
 
-  public async sell_exactAmount(mint: PublicKey, user: PublicKey, tokenAmount: number) {
+  public async sell_exactAmount(mint: PublicKey, poolId: PublicKey, coin_creator: PublicKey, tokenAmount: number,
+    user: PublicKey = wallet_1.publicKey) {
     const sell_token_amount = tokenAmount;
     // logger.info(
     //   {
     //     status:`finding pumpswap pool for ${mint}`
     //   }
     // )
-    const pool = await getPumpSwapPool(mint);
-    const pumpswap_buy_tx = await this.createSellInstruction(await getPumpSwapPool(mint), user, mint, BigInt(Math.floor(sell_token_amount * 10 ** 6)), BigInt(0));
+    // const pool = await getPumpSwapPool(mint);
+    const pumpswap_buy_tx = await this.createSellInstruction(poolId, user, mint, coin_creator, BigInt(Math.floor(sell_token_amount * 10 ** 6)), BigInt(0));
     const ata = getAssociatedTokenAddressSync(mint, user);
     const ix_list: any[] = [
       ...[
@@ -149,7 +152,7 @@ export class PumpSwapSDK {
     const transactionSignature = await helius.rpc.sendTransaction(transaction);
     console.log(`Successful sell: ${transactionSignature}`);
   }
-  public async sell_percentage(mint: PublicKey, user: PublicKey, percentage_to_sell: number) {
+  public async sell_percentage(mint: PublicKey, poolId: PublicKey, coin_creator: PublicKey, user: PublicKey = wallet_1.publicKey, percentage_to_sell: number) {
     const holding_token_amount = await getSPLBalance(connection, mint, user);
     const sell_token_amount = percentage_to_sell * holding_token_amount;
     // logger.info(
@@ -157,8 +160,8 @@ export class PumpSwapSDK {
     //     status:`finding pumpswap pool for ${mint}`
     //   }
     // )
-    const pool = await getPumpSwapPool(mint);
-    const pumpswap_buy_tx = await this.createSellInstruction(pool, user, mint, BigInt(Math.floor(sell_token_amount * 10 ** 6)), BigInt(0));
+    // const pool = await getPumpSwapPool(mint);
+    const pumpswap_buy_tx = await this.createSellInstruction(poolId, user, mint, coin_creator, BigInt(Math.floor(sell_token_amount * 10 ** 6)), BigInt(0));
     const ata = getAssociatedTokenAddressSync(mint, user);
     const ix_list: any[] = [
       ...[
@@ -198,19 +201,27 @@ export class PumpSwapSDK {
     poolId: PublicKey,
     user: PublicKey,
     mint: PublicKey,
+    coinCreator: PublicKey,
     baseAmountOut: bigint, // Use bigint for u64
     maxQuoteAmountIn: bigint // Use bigint for u64
   ): Promise<TransactionInstruction> {
 
+
+    const pumpAmmSdk = new PumpAmmSdk(connection);
+    const poolKey = new PublicKey(poolId);
+    const swapState = await pumpAmmSdk.swapSolanaState(poolKey, user);
+    const { globalConfig, pool, poolBaseAmount, poolQuoteAmount } = swapState;
+    const baseMint = pool.baseMint;
+    const qouteMint = pool.quoteMint;
     // Compute associated token account addresses
-    const userBaseTokenAccount = await getAssociatedTokenAddress(mint, user);
-    const userQuoteTokenAccount = await getAssociatedTokenAddress(WSOL_TOKEN_ACCOUNT, user);
-    const poolBaseTokenAccount = await getAssociatedTokenAddress(mint, poolId, true);
+    const userBaseTokenAccount = await getAssociatedTokenAddress(baseMint, user);
+    const userQuoteTokenAccount = await getAssociatedTokenAddress(qouteMint, user);
+    const poolBaseTokenAccount = await getAssociatedTokenAddress(baseMint, poolId, true);
 
-    const poolQuoteTokenAccount = await getAssociatedTokenAddress(WSOL_TOKEN_ACCOUNT, poolId, true);
+    const poolQuoteTokenAccount = await getAssociatedTokenAddress(qouteMint, poolId, true);
 
-    const pool_detail = await getPoolsWithPrices(mint);
-    const coin_creator_vault_authority_data = getCoinCreatorVaultAuthorityPda(pool_detail[0].poolData.coinCreator, PUMP_AMM_PROGRAM_ID);
+    // const pool_detail = await getPoolsWithPrices(mint);
+    const coin_creator_vault_authority_data = getCoinCreatorVaultAuthorityPda(coinCreator, PUMP_AMM_PROGRAM_ID);
     console.log("coin_creator_vault_authority: ", coin_creator_vault_authority_data[0].toBase58());
     const coin_creator_vault_authority = coin_creator_vault_authority_data[0];
     const coin_creator_vault_ata_data = getCoinCreatorVaultAtaPda(coin_creator_vault_authority, TOKEN_PROGRAM_ID, NATIVE_MINT);
@@ -267,6 +278,7 @@ export class PumpSwapSDK {
     poolId: PublicKey,
     user: PublicKey,
     mint: PublicKey,
+    coin_creator: PublicKey,
     baseAmountIn: bigint, // Use bigint for u64
     minQuoteAmountOut: bigint // Use bigint for u64
   ): Promise<TransactionInstruction> {
@@ -276,8 +288,8 @@ export class PumpSwapSDK {
     const poolBaseTokenAccount = await getAssociatedTokenAddress(mint, poolId, true);
     const poolQuoteTokenAccount = await getAssociatedTokenAddress(WSOL_TOKEN_ACCOUNT, poolId, true);
 
-    const pool_detail = await getPoolsWithPrices(mint);
-    const coin_creator_vault_authority_data = getCoinCreatorVaultAuthorityPda(pool_detail[0].poolData.coinCreator, PUMP_AMM_PROGRAM_ID);
+    // const pool_detail = await getPoolsWithPrices(mint);
+    const coin_creator_vault_authority_data = getCoinCreatorVaultAuthorityPda(coin_creator, PUMP_AMM_PROGRAM_ID);
     console.log("coin_creator_vault_authority: ", coin_creator_vault_authority_data[0].toBase58());
     const coin_creator_vault_authority = coin_creator_vault_authority_data[0];
     const coin_creator_vault_ata_data = getCoinCreatorVaultAtaPda(coin_creator_vault_authority, TOKEN_PROGRAM_ID, NATIVE_MINT);

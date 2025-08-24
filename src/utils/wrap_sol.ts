@@ -1,13 +1,13 @@
-import { NATIVE_MINT, getOrCreateAssociatedTokenAccount, createSyncNativeInstruction,  } from "@solana/spl-token";
+import { NATIVE_MINT, getOrCreateAssociatedTokenAccount, createSyncNativeInstruction, } from "@solana/spl-token";
 import { wallet_1, connection } from "../constants";
-import { Transaction, SystemProgram, LAMPORTS_PER_SOL,  sendAndConfirmTransaction, ComputeBudgetProgram } from "@solana/web3.js";
-import {getSPLTokenBalance} from "./utils";
+import { Transaction, SystemProgram, LAMPORTS_PER_SOL, sendAndConfirmTransaction, ComputeBudgetProgram } from "@solana/web3.js";
+import { getSPLTokenBalance } from "./utils";
 import { program } from "commander";
 import { logger } from "./logger";
 let wrap_size = 0;
 export async function wrap_sol(
-    amount:number
-){
+    amount: number
+) {
     // wSol ATA 
     const wSolAta = await getOrCreateAssociatedTokenAccount(connection, wallet_1, NATIVE_MINT, wallet_1.publicKey);
     console.log(`wsol ATA: ${wSolAta.address.toBase58()}`);
@@ -15,9 +15,9 @@ export async function wrap_sol(
     let transaction = new Transaction().add(
         // trasnfer SOL
         SystemProgram.transfer({
-          fromPubkey: wallet_1.publicKey,
-          toPubkey: wSolAta.address,
-          lamports: amount*LAMPORTS_PER_SOL,
+            fromPubkey: wallet_1.publicKey,
+            toPubkey: wSolAta.address,
+            lamports: amount * LAMPORTS_PER_SOL,
         }),
         // sync wrapped SOL balance
         createSyncNativeInstruction(wSolAta.address)
@@ -45,15 +45,15 @@ export async function wrap_sol(
     return txSignature;
 }
 
-export async function check_wsol_balance(wSolAta:any){
+export async function check_wsol_balance(wSolAta: any) {
     const wsolBalance = await getSPLTokenBalance(connection, NATIVE_MINT, wallet_1.publicKey);
 
     console.log(`new wsol balance: ${wsolBalance}`);
     return wsolBalance;
 }
 
-export async function main(){
-    await wrap_sol(0.1);
-    
+export async function main() {
+    await wrap_sol(0.4);
+
 }
-//main();
+// main();
